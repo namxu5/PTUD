@@ -3,7 +3,7 @@ import { Home, Users, ClipboardCheck, BookOpen, FileEdit, UserCog, GraduationCap
 import { StudentManagement } from './components/StudentManagement';
 import { AttendanceApp } from './components/AttendanceApp';
 import { HomeworkManagement } from './components/HomeworkManagement';
-import { GradeCorrectionRequest } from './components/GradeCorrectionRequest';
+import { GradeCorrectionRequestNew } from './components/GradeCorrectionRequestNew';
 import { TeacherAssignment } from './components/TeacherAssignment';
 import { AdmissionManagement } from './components/AdmissionManagement';
 import { AspirationsRegistration } from './components/AspirationsRegistration';
@@ -21,7 +21,7 @@ function App() {
     { id: 'students', name: 'Quản lý học sinh', icon: Users },
     { id: 'attendance', name: 'Điểm danh', icon: ClipboardCheck },
     { id: 'homework', name: 'Làm bài tập', icon: BookOpen },
-    { id: 'grade-correction', name: 'Phiếu sửa điểm', icon: FileEdit },
+    { id: 'grade-correction-new', name: 'Gửi yêu cầu sửa điểm', icon: FileEdit },
     { id: 'teacher-assignment', name: 'Phân công giáo viên', icon: UserCog },
     { id: 'admission', name: 'Xét tuyển', icon: GraduationCap },
     { id: 'aspirations', name: 'Đăng ký nguyện vọng', icon: FileText },
@@ -35,8 +35,8 @@ function App() {
         return <AttendanceApp />;
       case 'homework':
         return <HomeworkManagement />;
-      case 'grade-correction':
-        return <GradeCorrectionRequest />;
+      case 'grade-correction-new':
+        return <GradeCorrectionRequestNew />;
       case 'teacher-assignment':
         return <TeacherAssignment />;
       case 'admission':
