@@ -8,4 +8,5 @@
   Run `npm i` to install the dependencies.
 
   Run `npm run dev` to start the development server.
-  
+   file này  của CHỨC NĂNG DIEM DANH KO DC SỬA ĐỔI LỖI CỦA TOI
+   ![alt text](image.png)![alt text](image-1.png)![alt text](image-2.png)
