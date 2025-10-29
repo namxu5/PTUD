@@ -1,387 +1,293 @@
-import { useState } from 'react';
-import { FileText, Plus, Edit, Trash2, Save } from 'lucide-react';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { toast } from 'sonner@2.0.3';
+import { useState, useEffect } from "react";
+import { Navbar } from "../components/Navbar";
+import { SchoolFilter } from "../components/SchoolFilter";
+import { SchoolCard, School } from "../components/SchoolCard";
+import { RegistrationModal, RegistrationData } from "../components/RegistrationModal";
+import { RegisteredList } from "../components/RegisteredList";
+import { Toaster } from "../components/ui/sonner";
+import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
 
-interface Aspiration {
-  id: number;
-  priority: number;
-  school: string;
-  code: string;
-  program: string;
+interface Registration {
+  studentName: string;
+  email: string;
+  phone: string;
+  schoolId: string;
+  schoolName: string;
+  timestamp: string;
 }
 
-export function AspirationsRegistration() {
-  const [aspirations, setAspirations] = useState<Aspiration[]>([
-    {
-      id: 1,
-      priority: 1,
-      school: 'Trường THPT Chuyên Hà Nội - Amsterdam',
-      code: 'HN01',
-      program: 'Chuyên Toán',
-    },
-    {
-      id: 2,
-      priority: 2,
-      school: 'Trường THPT Chu Văn An',
-      code: 'HN02',
-      program: 'Chuyên Lý',
-    },
-    {
-      id: 3,
-      priority: 3,
-      school: 'Trường THPT Nguyễn Huệ',
-      code: 'HN03',
-      program: 'Văn hóa',
-    },
-  ]);
+// Mock data
+const provinces = [
+  { id: "1", name: "Hà Nội" },
+  { id: "2", name: "Hồ Chí Minh" },
+  { id: "3", name: "Đà Nẵng" },
+];
 
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedAspiration, setSelectedAspiration] = useState<Aspiration | null>(null);
-  const [formData, setFormData] = useState({
-    priority: '',
-    school: '',
-    program: '',
-  });
+const districts = [
+  { id: "1-1", name: "Quận Ba Đình", provinceId: "1" },
+  { id: "1-2", name: "Quận Hoàn Kiếm", provinceId: "1" },
+  { id: "1-3", name: "Quận Cầu Giấy", provinceId: "1" },
+  { id: "2-1", name: "Quận 1", provinceId: "2" },
+  { id: "2-2", name: "Quận 3", provinceId: "2" },
+  { id: "2-3", name: "Quận Bình Thạnh", provinceId: "2" },
+  { id: "3-1", name: "Quận Hải Châu", provinceId: "3" },
+  { id: "3-2", name: "Quận Thanh Khê", provinceId: "3" },
+];
 
-  const registrationPeriod = {
-    startDate: '2025-11-01',
-    endDate: '2025-11-30',
-    status: 'open',
-  };
+const allSchools: School[] = [
+  {
+    id: "s1",
+    name: "Trường THPT Chu Văn An",
+    address: "26 Đường Nguyễn Bỉnh Khiêm, Quận Ba Đình, Hà Nội",
+    phone: "024 3845 2966",
+    provinceId: "1",
+    districtId: "1-1",
+  },
+  {
+    id: "s2",
+    name: "Trường THCS Trần Phú",
+    address: "15 Đinh Tiên Hoàng, Quận Hoàn Kiếm, Hà Nội",
+    phone: "024 3826 1234",
+    provinceId: "1",
+    districtId: "1-2",
+  },
+  {
+    id: "s3",
+    name: "Trường THPT Cầu Giấy",
+    address: "120 Xuân Thủy, Quận Cầu Giấy, Hà Nội",
+    phone: "024 3754 8888",
+    provinceId: "1",
+    districtId: "1-3",
+  },
+  {
+    id: "s4",
+    name: "Trường THPT Lê Hồng Phong",
+    address: "240 Võ Thị Sáu, Quận 3, TP. Hồ Chí Minh",
+    phone: "028 3829 5050",
+    provinceId: "2",
+    districtId: "2-2",
+  },
+  {
+    id: "s5",
+    name: "Trường THCS Nguyễn Du",
+    address: "45 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
+    phone: "028 3822 7777",
+    provinceId: "2",
+    districtId: "2-1",
+  },
+  {
+    id: "s6",
+    name: "Trường THPT Bình Thạnh",
+    address: "68 Xô Viết Nghệ Tĩnh, Quận Bình Thạnh, TP. Hồ Chí Minh",
+    phone: "028 3512 3456",
+    provinceId: "2",
+    districtId: "2-3",
+  },
+  {
+    id: "s7",
+    name: "Trường THPT Phan Châu Trinh",
+    address: "55 Lê Duẩn, Quận Hải Châu, Đà Nẵng",
+    phone: "0236 3821 234",
+    provinceId: "3",
+    districtId: "3-1",
+  },
+  {
+    id: "s8",
+    name: "Trường THCS Trưng Vương",
+    address: "88 Ông Ích Khiêm, Quận Thanh Khê, Đà Nẵng",
+    phone: "0236 3651 567",
+    provinceId: "3",
+    districtId: "3-2",
+  },
+];
 
-  const resetForm = () => {
-    setFormData({
-      priority: '',
-      school: '',
-      program: '',
+export default function App() {
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [filteredSchools, setFilteredSchools] = useState<School[]>(allSchools);
+  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [registeredSchools, setRegisteredSchools] = useState<string[]>([]);
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+
+  // Load registrations from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("registrations");
+    if (stored) {
+      const loadedRegistrations = JSON.parse(stored);
+      setRegistrations(loadedRegistrations);
+      setRegisteredSchools(loadedRegistrations.map((r: Registration) => r.schoolId));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Reset district when province changes
+    setSelectedDistrict("");
+  }, [selectedProvince]);
+
+  const handleSearch = () => {
+    if (!selectedProvince && !selectedDistrict) {
+      setFilteredSchools(allSchools);
+      return;
+    }
+
+    const filtered = allSchools.filter((school) => {
+      const matchProvince = selectedProvince
+        ? school.provinceId === selectedProvince
+        : true;
+      const matchDistrict = selectedDistrict
+        ? school.districtId === selectedDistrict
+        : true;
+      return matchProvince && matchDistrict;
     });
+
+    setFilteredSchools(filtered);
   };
 
-  const handleAdd = () => {
-    if (!formData.priority || !formData.school || !formData.program) {
-      toast.error('Vui lòng điền đầy đủ thông tin');
+  const handleRegister = (school: School) => {
+    setSelectedSchool(school);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmitRegistration = async (data: RegistrationData) => {
+    // Check if already registered
+    if (registeredSchools.includes(data.schoolId)) {
+      toast.error("Lỗi đăng ký", {
+        description: "Bạn đã đăng ký nguyện vọng vào trường này rồi!",
+      });
+      setIsModalOpen(false);
       return;
     }
 
-    if (aspirations.length >= 3) {
-      toast.error('Chỉ được đăng ký tối đa 3 nguyện vọng');
+    // Check maximum registrations (example: max 3)
+    if (registeredSchools.length >= 3) {
+      toast.error("Vượt quá giới hạn", {
+        description: "Bạn chỉ được đăng ký tối đa 3 nguyện vọng!",
+      });
+      setIsModalOpen(false);
       return;
     }
 
-    const priorityNum = parseInt(formData.priority);
-    const existingPriority = aspirations.find(a => a.priority === priorityNum);
-    if (existingPriority) {
-      toast.error(`Nguyện vọng ${priorityNum} đã tồn tại`);
-      return;
-    }
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const schoolName = formData.school === 'school1' ? 'THPT Chuyên Hà Nội - Amsterdam' : 
-                       formData.school === 'school2' ? 'THPT Chu Văn An' : 'THPT Nguyễn Huệ';
-    const schoolCode = formData.school === 'school1' ? 'HN01' : 
-                       formData.school === 'school2' ? 'HN02' : 'HN03';
-    const programName = formData.program === 'math' ? 'Chuyên Toán' : 
-                        formData.program === 'physics' ? 'Chuyên Lý' : 
-                        formData.program === 'chemistry' ? 'Chuyên Hóa' : 
-                        formData.program === 'literature' ? 'Chuyên Văn' : 'Văn hóa';
-
-    const newAspiration: Aspiration = {
-      id: aspirations.length + 1,
-      priority: priorityNum,
-      school: schoolName,
-      code: schoolCode,
-      program: programName,
+    // Create new registration
+    const newRegistration = {
+      ...data,
+      timestamp: new Date().toISOString(),
+      schoolName: selectedSchool?.name || "",
     };
 
-    setAspirations([...aspirations, newAspiration].sort((a, b) => a.priority - b.priority));
-    toast.success('Thêm nguyện vọng thành công');
-    setIsAddDialogOpen(false);
-    resetForm();
-  };
+    // Update registrations
+    const updatedRegistrations = [...registrations, newRegistration];
+    setRegistrations(updatedRegistrations);
+    localStorage.setItem("registrations", JSON.stringify(updatedRegistrations));
 
-  const handleEdit = () => {
-    if (!selectedAspiration || !formData.priority || !formData.school || !formData.program) {
-      toast.error('Vui lòng điền đầy đủ thông tin');
-      return;
-    }
+    // Update registered schools list
+    setRegisteredSchools([...registeredSchools, data.schoolId]);
 
-    const priorityNum = parseInt(formData.priority);
-    const existingPriority = aspirations.find(a => a.priority === priorityNum && a.id !== selectedAspiration.id);
-    if (existingPriority) {
-      toast.error(`Nguyện vọng ${priorityNum} đã tồn tại`);
-      return;
-    }
-
-    const schoolName = formData.school === 'school1' ? 'THPT Chuyên Hà Nội - Amsterdam' : 
-                       formData.school === 'school2' ? 'THPT Chu Văn An' : 'THPT Nguyễn Huệ';
-    const schoolCode = formData.school === 'school1' ? 'HN01' : 
-                       formData.school === 'school2' ? 'HN02' : 'HN03';
-    const programName = formData.program === 'math' ? 'Chuyên Toán' : 
-                        formData.program === 'physics' ? 'Chuyên Lý' : 
-                        formData.program === 'chemistry' ? 'Chuyên Hóa' : 
-                        formData.program === 'literature' ? 'Chuyên Văn' : 'Văn hóa';
-
-    setAspirations(aspirations.map(a => 
-      a.id === selectedAspiration.id 
-        ? { ...a, priority: priorityNum, school: schoolName, code: schoolCode, program: programName }
-        : a
-    ).sort((a, b) => a.priority - b.priority));
-    
-    toast.success('Cập nhật nguyện vọng thành công');
-    setIsEditDialogOpen(false);
-    resetForm();
-  };
-
-  const handleDelete = (id: number) => {
-    setAspirations(aspirations.filter(a => a.id !== id));
-    toast.success('Xóa nguyện vọng thành công');
-  };
-
-  const handleSave = () => {
-    if (aspirations.length === 0) {
-      toast.error('Vui lòng thêm ít nhất 1 nguyện vọng');
-      return;
-    }
-    toast.success('Lưu và gửi đăng ký thành công');
-  };
-
-  const openEditDialog = (aspiration: Aspiration) => {
-    setSelectedAspiration(aspiration);
-    setFormData({
-      priority: aspiration.priority.toString(),
-      school: 'school1',
-      program: 'math',
+    toast.success("Đăng ký thành công!", {
+      description: `Đã đăng ký nguyện vọng vào ${selectedSchool?.name}`,
     });
-    setIsEditDialogOpen(true);
+
+    setIsModalOpen(false);
+    setSelectedSchool(null);
+  };
+
+  const handleRemoveRegistration = (index: number) => {
+    const registration = registrations[index];
+    const updatedRegistrations = registrations.filter((_, i) => i !== index);
+    
+    setRegistrations(updatedRegistrations);
+    localStorage.setItem("registrations", JSON.stringify(updatedRegistrations));
+    
+    // Update registered schools list
+    const updatedSchools = updatedRegistrations.map((r) => r.schoolId);
+    setRegisteredSchools(updatedSchools);
+
+    toast.success("Đã xóa nguyện vọng", {
+      description: `Đã xóa nguyện vọng vào ${registration.schoolName}`,
+    });
+  };
+
+  const handleLogout = () => {
+    toast.info("Đăng xuất", {
+      description: "Bạn đã đăng xuất khỏi hệ thống",
+    });
+    // In a real app, this would clear session and redirect to login
   };
 
   return (
-    <div className="space-y-6">
-      {/* Registration Period Info */}
-      <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex gap-4">
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <Navbar onLogout={handleLogout} />
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <SchoolFilter
+            provinces={provinces}
+            districts={districts}
+            selectedProvince={selectedProvince}
+            selectedDistrict={selectedDistrict}
+            onProvinceChange={setSelectedProvince}
+            onDistrictChange={setSelectedDistrict}
+            onSearch={handleSearch}
+          />
+        </div>
+
+        {filteredSchools.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <AlertCircle className="w-8 h-8 text-muted-foreground" />
             </div>
-            <div>
-              <h3 className="text-gray-900">Đăng ký nguyện vọng vào lớp 10</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Thời gian: {new Date(registrationPeriod.startDate).toLocaleDateString('vi-VN')} - {new Date(registrationPeriod.endDate).toLocaleDateString('vi-VN')}
+            <h3 className="text-muted-foreground mb-2">
+              Không có trường tại khu vực này
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Vui lòng thử tìm kiếm với khu vực khác hoặc bỏ bộ lọc
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-muted-foreground">
+                Hiển thị <strong>{filteredSchools.length}</strong> trường
               </p>
-              <Badge className="mt-2 bg-green-500">Đang mở</Badge>
+              {registeredSchools.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Đã đăng ký: {registeredSchools.length}/3 nguyện vọng
+                </p>
+              )}
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Instructions */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-gray-900 mb-4">Hướng dẫn đăng ký</h3>
-        <ul className="space-y-2 text-sm text-gray-600">
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-1">•</span>
-            <span>Học sinh được đăng ký tối đa 3 nguyện vọng theo thứ tự ưu tiên</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-1">•</span>
-            <span>Nguyện vọng 1 có độ ưu tiên cao nhất</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-1">•</span>
-            <span>Có thể chỉnh sửa nguyện vọng trong thời gian đăng ký</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-1">•</span>
-            <span>Sau khi hết hạn đăng ký, không thể thay đổi nguyện vọng</span>
-          </li>
-        </ul>
-      </div>
-
-      {/* Current Aspirations */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-gray-900">Danh sách nguyện vọng</h3>
-            {aspirations.length < 3 && (
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={resetForm}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Thêm nguyện vọng
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Thêm nguyện vọng</DialogTitle>
-                    <DialogDescription>Đăng ký nguyện vọng vào trường THPT</DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label>Thứ tự ưu tiên</Label>
-                      <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn thứ tự" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">Nguyện vọng 1</SelectItem>
-                          <SelectItem value="2">Nguyện vọng 2</SelectItem>
-                          <SelectItem value="3">Nguyện vọng 3</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Trường</Label>
-                      <Select value={formData.school} onValueChange={(value) => setFormData({ ...formData, school: value })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn trường" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="school1">THPT Chuyên Hà Nội - Amsterdam</SelectItem>
-                          <SelectItem value="school2">THPT Chu Văn An</SelectItem>
-                          <SelectItem value="school3">THPT Nguyễn Huệ</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Chuyên ngành/Lớp</Label>
-                      <Select value={formData.program} onValueChange={(value) => setFormData({ ...formData, program: value })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn chuyên ngành" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="math">Chuyên Toán</SelectItem>
-                          <SelectItem value="physics">Chuyên Lý</SelectItem>
-                          <SelectItem value="chemistry">Chuyên Hóa</SelectItem>
-                          <SelectItem value="literature">Chuyên Văn</SelectItem>
-                          <SelectItem value="general">Văn hóa</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Hủy</Button>
-                      <Button onClick={handleAdd}>Thêm nguyện vọng</Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-        </div>
-
-        <div className="p-6">
-          {aspirations.length > 0 ? (
-            <div className="space-y-4">
-              {aspirations.map((aspiration) => (
-                <div
-                  key={aspiration.id}
-                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 hover:border-blue-300 bg-gray-50"
-                >
-                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-white">NV{aspiration.priority}</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="text-gray-900">{aspiration.school}</h4>
-                        <p className="text-sm text-gray-600 mt-1">Mã trường: {aspiration.code}</p>
-                        <Badge className="mt-2 bg-blue-100 text-blue-700">{aspiration.program}</Badge>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(aspiration)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(aspiration.id)}>
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredSchools.map((school) => (
+                <SchoolCard
+                  key={school.id}
+                  school={school}
+                  onRegister={handleRegister}
+                />
               ))}
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Chưa có nguyện vọng nào</p>
-              <p className="text-sm text-gray-400 mt-1">Nhấn "Thêm nguyện vọng" để bắt đầu đăng ký</p>
-            </div>
-          )}
-        </div>
-
-        {aspirations.length > 0 && (
-          <div className="p-6 border-t border-gray-200">
-            <div className="flex justify-end">
-              <Button onClick={handleSave}>
-                <Save className="w-4 h-4 mr-2" />
-                Lưu và gửi đăng ký
-              </Button>
-            </div>
-          </div>
+          </>
         )}
+
+        <RegisteredList
+          registrations={registrations}
+          onRemove={handleRemoveRegistration}
+        />
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa nguyện vọng</DialogTitle>
-            <DialogDescription>Cập nhật thông tin nguyện vọng</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label>Thứ tự ưu tiên</Label>
-              <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn thứ tự" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Nguyện vọng 1</SelectItem>
-                  <SelectItem value="2">Nguyện vọng 2</SelectItem>
-                  <SelectItem value="3">Nguyện vọng 3</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Trường</Label>
-              <Select value={formData.school} onValueChange={(value) => setFormData({ ...formData, school: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn trường" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="school1">THPT Chuyên Hà Nội - Amsterdam</SelectItem>
-                  <SelectItem value="school2">THPT Chu Văn An</SelectItem>
-                  <SelectItem value="school3">THPT Nguyễn Huệ</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Chuyên ngành/Lớp</Label>
-              <Select value={formData.program} onValueChange={(value) => setFormData({ ...formData, program: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn chuyên ngành" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="math">Chuyên Toán</SelectItem>
-                  <SelectItem value="physics">Chuyên Lý</SelectItem>
-                  <SelectItem value="chemistry">Chuyên Hóa</SelectItem>
-                  <SelectItem value="literature">Chuyên Văn</SelectItem>
-                  <SelectItem value="general">Văn hóa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Hủy</Button>
-              <Button onClick={handleEdit}>Lưu thay đổi</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <RegistrationModal
+        school={selectedSchool}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedSchool(null);
+        }}
+        onSubmit={handleSubmitRegistration}
+      />
+
+      <Toaster position="top-right" />
     </div>
   );
 }
