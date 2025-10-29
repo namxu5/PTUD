@@ -4,7 +4,7 @@ import { StudentManagement } from './components/StudentManagement';
 import { AttendanceApp } from './components/AttendanceApp';
 import { HomeworkManagement } from './components/HomeworkManagement';
 import { GradeCorrectionRequestNew } from './components/GradeCorrectionRequestNew';
-import { TeacherAssignment } from './components/TeacherAssignment';
+import { TeacherAssignmentSystem } from './components/TeacherAssignmentSystem';
 import { AdmissionManagement } from './components/AdmissionManagement';
 import AspirationsRegistration from './components/AspirationsRegistration';
 import { Button } from './components/ui/button';
@@ -38,7 +38,7 @@ function App() {
       case 'grade-correction-new':
         return <GradeCorrectionRequestNew />;
       case 'teacher-assignment':
-        return <TeacherAssignment />;
+        return <TeacherAssignmentSystem />;
       case 'admission':
         return <AdmissionManagement />;
       case 'aspirations':
