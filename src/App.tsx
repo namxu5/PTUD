@@ -6,7 +6,7 @@ import { HomeworkManagement } from './components/HomeworkManagement';
 import { GradeCorrectionRequest } from './components/GradeCorrectionRequest';
 import { TeacherAssignment } from './components/TeacherAssignment';
 import { AdmissionManagement } from './components/AdmissionManagement';
-import { AspirationsRegistration } from './components/AspirationsRegistration';
+import AspirationsRegistration from './components/AspirationsRegistration';
 import { Button } from './components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './components/ui/avatar';
 import { Badge } from './components/ui/badge';
