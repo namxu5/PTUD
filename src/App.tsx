@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Home, Users, ClipboardCheck, BookOpen, FileEdit, UserCog, GraduationCap, FileText, Menu, Bell, LogOut, Settings } from 'lucide-react';
 import { StudentManagement } from './components/StudentManagement';
-import { AttendanceManagement } from './components/AttendanceManagement';
+import { AttendanceApp } from './components/AttendanceApp';
 import { HomeworkManagement } from './components/HomeworkManagement';
 import { GradeCorrectionRequest } from './components/GradeCorrectionRequest';
 import { TeacherAssignment } from './components/TeacherAssignment';
@@ -32,7 +32,7 @@ function App() {
       case 'students':
         return <StudentManagement />;
       case 'attendance':
-        return <AttendanceManagement />;
+        return <AttendanceApp />;
       case 'homework':
         return <HomeworkManagement />;
       case 'grade-correction':
